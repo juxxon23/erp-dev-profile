@@ -1,6 +1,5 @@
 class PSQLError:
 
-
     def msg(self, error):
         if error == None:
             msg = {'status': 'user', 'msg': 'The user doesn\'t exists'}

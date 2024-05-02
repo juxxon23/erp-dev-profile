@@ -14,25 +14,25 @@ class Employee(MethodView):
 
     def get(self):
         try:
-            employee_list = psql_tool.get_all(User)
+            all_employees = psql_tool.get_all(User)
             msg = psqle.msg(employee_list)
             if msg.get('status') != 'ok':
                 return jsonify(msg), 400
-            el = []
-            for e in employee_list:
-                e = {
-                    "id_user":e.id_user,
-                    "first_name":e.first_name,
-                    "last_name":e.last_name,
-                    "email":e.email,
-                    "phone_number":e.phone_number,
-                    "address":e.address,
-                    "employee_id":e.employee_id,
-                    "dateof_hire":e.dateof_hire,
-                    "job_title":e.job_title
+            employee_list = []
+            for employee in all_employee:
+                temp_employee = {
+                    "idUser":employee.id_user,
+                    "firstName":employee.first_name,
+                    "lastName":employee.last_name,
+                    "email":employee.email,
+                    "phoneNumber":employee.phone_number,
+                    "address":employee.address,
+                    "personalID":employee.employee_id,
+                    "dateofHire":employee.dateof_hire,
+                    "jobTitle":employee.job_title
                 }
-                el.append(e)
-            return jsonify({"status":"ok", "employee_list":el}), 200
+                employee_list.append(temp_employee)
+            return jsonify({"status":"ok", "employee_list":employee_list}), 200
         except Exception as ex:
             return jsonify({'status': 'exception', 'ex': str(ex)}), 403
 
@@ -41,14 +41,14 @@ class Employee(MethodView):
             employee = request.get_json()
             new_user = User(
                 id_user=secrets.token_hex(5),
-                first_name=employee['first_name'],
-                last_name=employee['last_name'],
+                first_name=employee['firstName'],
+                last_name=employee['lastName'],
                 email=employee['email'],
-                phone_number=employee['phone_number'],
+                phone_number=employee['phoneNumber'],
                 address=employee['address'],
-                employee_id=employee['employee_id'],
-                dateof_hire=employee['dateof_hire'],
-                job_title=employee['job_title']
+                employee_id=employee['employeeID'],
+                dateof_hire=employee['dateofHire'],
+                job_title=employee['jobTitle']
                 )
             state = psql_tool.add(new_user)
             msg = psqle.msg(state)
