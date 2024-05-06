@@ -50,3 +50,15 @@ class PSQLManager:
         except Exception as ex:
             error_msg = {'exception': 'postgres_tool get_all', 'ex': str(ex)}
             return error_msg
+
+    def get_by_id(self, table_name, value):
+        try:
+            data = db.session.query(table_name).filter_by(
+                id_user=value).first()
+            return data
+        except SQLAlchemyError as e:
+            error_msg = {'exception': 'sqlalchemy get_by', 'ex': str(e)}
+            return error_msg
+        except Exception as ex:
+            error_msg = {'exception': 'postgres_tool get_by', 'ex': str(ex)}
+            return error_msg
