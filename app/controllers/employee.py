@@ -1,55 +1,32 @@
-import secrets
 import json
 from flask.views import MethodView
 from flask import jsonify, request
 from app.db.postgresql.model import User
 from app.db.postgresql.psql_manager import PSQLManager
 from app.helpers.error_handler import PSQLError
+from app.helpers.user_func import UserFunc
 
 psql_tool = PSQLManager()
 psqle = PSQLError()
-
+user_util = UserFunc()
 
 class Employee(MethodView):
 
     def get(self):
         try:
-            all_employees = psql_tool.get_all(User)
-            msg = psqle.msg(employee_list)
+            id_u = request.headers.get("idUser")
+            data_user = psql_tool.get_by_id(User, id_u)
+            msg = psqle.msg(data_user)
             if msg.get('status') != 'ok':
                 return jsonify(msg), 400
-            employee_list = []
-            for employee in all_employee:
-                temp_employee = {
-                    "idUser":employee.id_user,
-                    "firstName":employee.first_name,
-                    "lastName":employee.last_name,
-                    "email":employee.email,
-                    "phoneNumber":employee.phone_number,
-                    "address":employee.address,
-                    "personalID":employee.employee_id,
-                    "dateofHire":employee.dateof_hire,
-                    "jobTitle":employee.job_title
-                }
-                employee_list.append(temp_employee)
-            return jsonify({"status":"ok", "employee_list":employee_list}), 200
+            return jsonify({'data': data_user.as_dict_format()}), 200
         except Exception as ex:
-            return jsonify({'status': 'exception', 'ex': str(ex)}), 403
+            return jsonify({'status': 'get_exception_controller', 'ex': str(ex)}), 400
 
     def post(self):
         try:
             employee = request.get_json()
-            new_user = User(
-                id_user=secrets.token_hex(5),
-                first_name=employee['firstName'],
-                last_name=employee['lastName'],
-                email=employee['email'],
-                phone_number=employee['phoneNumber'],
-                address=employee['address'],
-                employee_id=employee['employeeID'],
-                dateof_hire=employee['dateofHire'],
-                job_title=employee['jobTitle']
-                )
+            new_user = user_util.create_user(User, employee)
             state = psql_tool.add(new_user)
             msg = psqle.msg(state)
             if msg.get('status') == 'ok':
@@ -57,4 +34,19 @@ class Employee(MethodView):
             else:
                 return jsonify(msg), 400            
         except Exception as ex:
-            return jsonify({'status': 'exception', 'ex': str(ex)}), 403
+            return jsonify({'status': 'post_exception_controller', 'ex': str(ex)}), 403
+
+    def put(self):
+        employee = request.get_json()
+        id_u = request.headers.get("idUser")
+        employee_data = psql_tool.get_by_id(User, id_u)
+        msg = psqle.msg(employee_data)
+        if msg.get('status') != 'ok':
+            return jsonify(msg), 400
+        user_util.update_user(employee_data, employee)
+        state = psql_tool.update()
+        msg = psqle.msg(state)
+        if msg.get('status') != 'ok':
+            return jsonify(msg), 400
+        else:
+            return jsonify({'status': 'ok'}), 200
